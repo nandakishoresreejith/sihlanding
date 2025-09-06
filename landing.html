@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Saathi - Groundwater Conservation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
+            position: relative;
+        }
+        .text-blue-900 { color: #084c61; }
+        .bg-blue-600 { background-color: #2e86ab; }
+        .bg-blue-700 { background-color: #1a6b8c; }
+        .bg-cyan-500 { background-color: #0dabd8; }
+        .bg-cyan-600 { background-color: #0c9abf; }
+        .bg-blue-900 { background-color: #0d3852; }
+        .bg-cyan-100 { background-color: #e0f7fa; }
+        .text-blue-700 { color: #08618e; }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .page-section {
+            display: none;
+            padding: 2rem 0;
+            position: relative;
+            z-index: 2; /* Ensure content is on top of animations */
+        }
+        #animation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .scrolling-text-container {
+            overflow: hidden;
+            width: 100%;
+        }
+        .scrolling-text {
+            white-space: nowrap;
+            display: inline-block;
+            animation: scroll-left 15s linear infinite;
+        }
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .slideshow-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .slideshow-image.active {
+            opacity: 1;
+        }
+        .feature-card-hover-animation {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .feature-card-hover-animation:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        .feature-card-hover-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+            animation: move-water 1s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1;
+            border-radius: 1rem;
+        }
+        .feature-card-hover-animation:hover::before {
+            opacity: 1;
+        }
+        @keyframes move-water {
+            from { background-position: 0 0; }
+            to { background-position: 20px 20px; }
+        }
+        .feature-card-content {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <canvas id="animation-canvas"></canvas>
+
+    <!-- Top Header -->
+    <div class="bg-gray-200 py-1 text-sm">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="text-gray-600">
+                भारत सरकार / जल संसाधन मंत्रालय
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex space-x-2">
+                    <!-- Social Media Icons (Placeholders) -->
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12c0 4.29 2.76 7.91 6.64 9.14-.08-.75-.12-1.5-.12-2.25V18.5c-2.47.53-3.15-1.53-3.15-1.53-.42-1.07-1.03-1.35-1.03-1.35-.85-.59.06-.58.06-.58.94.06 1.44.97 1.44.97.83 1.42 2.19 1.01 2.73.77.08-.6.32-1.01.59-1.24-2.08-.23-4.27-1.04-4.27-4.66 0-1.03.37-1.87 1.02-2.52-.1-.23-.45-1.19.1-2.48 0 0 .84-.27 2.75 1.02.79-.22 1.63-.33 2.47-.33.84 0 1.68.11 2.47.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.29.2 2.25.1 2.48.65.65 1.02 1.49 1.02 2.52 0 3.63-2.19 4.43-4.27 4.66.33.28.63.82.63 1.66V21c0 .75-.04 1.5-.12 2.25C19.24 19.91 22 16.29 22 12 22 6.48 17.52 2 12 2z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.46 6c-.82.37-1.7.62-2.6.72.96-.58 1.7-1.5 2.04-2.62-.9.5-1.9.87-2.95 1.06-.85-.9-2.06-1.46-3.4-1.46-2.57 0-4.66 2.09-4.66 4.66 0 .36.04.7.12 1.03C7.47 9.8 3.9 7.85 1.56 4.9c-.38.65-.59 1.4-.59 2.2 0 1.61.82 3.03 2.06 3.86-.76-.02-1.48-.23-2.1-.58v.06c0 2.27 1.6 4.16 3.72 4.59-.39.11-.8.17-1.22.17-.3 0-.58-.03-.87-.08.59 1.84 2.3 3.19 4.3 3.23-1.59 1.25-3.6 2-5.78 2-.38 0-.75-.02-1.12-.06 2.06 1.32 4.51 2.09 7.15 2.09 8.58 0 13.29-7.1 13.29-13.29 0-.2-.01-.4-.01-.6.91-.66 1.7-1.47 2.32-2.4z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22 6.92v10.16c0 1.44-.92 2.6-2.07 2.6h-15.86c-1.15 0-2.07-1.16-2.07-2.6V6.92c0-1.44.92-2.6 2.07-2.6h15.86c1.15 0 2.07 1.16 2.07 2.6zM20 7L12 11.5L4 7V6.5L12 11l8-4.5V7z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14c1.1 0 2-.9 2-2V5a2 2 0 00-2-2zM5.7 20v-7.3h3.5v7.3H5.7zm13.6 0h-3.5v-7.3h3.5v7.3zM14 20h-3.5v-7.3h3.5v7.3z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10 5.52 0 10-4.48 10-10C22 6.48 17.52 2 12 2zm3.38 16.5h-2.75v-8.25h2.75v8.25zm-1.38-9.75c-.75 0-1.38-.62-1.38-1.38s.63-1.37 1.38-1.37 1.37.62 1.37 1.37-.62 1.38-1.37 1.38z"/>
+                        </svg>
+                    </a>
+                </div>
+                <button class="bg-blue-600 text-white font-semibold py-1 px-3 rounded-md shadow-md hover:bg-blue-700 transition duration-300">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-white py-4 shadow-sm">
+        <div class="container mx-auto px-4 flex justify-start items-center">
+            <div class="flex items-center space-x-4">
+                <div class="border-r border-gray-300 pr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 0 0-9.8 11.2A7 7 0 0 0 12 22a7 7 0 0 0 9.8-8.8A10 10 0 0 0 12 2z"></path>
+                        <path d="M16 16c-2 2.5-4 2.5-4 0c0-1.5 1-3 4-3s4 1.5 4 3c0 2.5-2 2.5-4 0"></path>
+                        <path d="M12 22c-2.5 0-4.5-2-4.5-4.5S9.5 13 12 13s4.5 2 4.5 4.5S14.5 22 12 22z"></path>
+                        <path d="M12 2a7 7 0 0 0-4 13.5A7.5 7.5 0 0 0 12 22z"></path>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-xl font-bold text-blue-900">जल साथी</h1>
+                    <h2 class="text-md text-blue-900 font-medium">WATER SAATHI - GROUNDWATER CONSERVATION</h2>
+                    <h3 class="text-sm text-gray-500">MINISTRY OF JAL SHAKTI</h3>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 ml-auto">
+                <img src="https://placehold.co/150x50?text=Jal+Shakti+Logo" alt="Jal Shakti Logo" class="w-24 h-8">
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-600 py-2">
+        <div class="container mx-auto px-4 flex justify-center space-x-8 text-white font-semibold">
+            <a href="#" class="hover:bg-blue-700 px-4 py-2 rounded transition" onclick="showPage('home-page')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg>
+                Home
+            </a>
+            <a href="#" class="hover:bg-blue-700 px-4 py-2 rounded transition" onclick="showPage('about-page')">About</a>
+            <a href="#" class="hover:bg-blue-700 px-4 py-2 rounded transition" onclick="showPage('accolades-page')">Accolades</a>
+            <a href="#" class="hover:bg-blue-700 px-4 py-2 rounded transition" onclick="showPage('contact-page')">Contact Us</a>
+            <a href="#" class="hover:bg-blue-700 px-4 py-2 rounded transition" onclick="showPage('registration-page')">Registration</a>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <main id="content-area" class="py-8 flex-grow">
+
+        <!-- Home Page Section -->
+        <div id="home-page" class="page-section" style="display: block;">
+            
+            <!-- Slideshow Container -->
+            <div class="slideshow-container">
+            </div>
+             <!-- Features Section -->
+            <div class="features-bg mt-12 px-8">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Key Features of Water Saathi</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">💧</span>
+                            <h3 class="font-semibold text-xl mb-1">Rainfall Data</h3>
+                            <p class="text-gray-600 text-sm">Access local and regional rainfall data from official sources.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">🔬</span>
+                            <h3 class="font-semibold text-xl mb-1">Soil Analysis</h3>
+                            <p class="text-gray-600 text-sm">Understand your soil type and its suitability for recharge.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">🗺️</span>
+                            <h3 class="font-semibold text-xl mb-1">GIS Mapping</h3>
+                            <p class="text-gray-600 text-sm">GIS-based models for accurate rooftop and land area detection.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">⚙️</span>
+                            <h3 class="font-semibold text-xl mb-1">Calculations</h3>
+                            <p class="text-gray-600 text-sm">Automated potential and size calculations for structures.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">📈</span>
+                            <h3 class="font-semibold text-xl mb-1">Cost-Benefit</h3>
+                            <p class="text-gray-600 text-sm">Approximate cost and long-term water saving benefits.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center feature-card-hover-animation relative">
+                        <div class="feature-card-content">
+                            <span class="text-4xl mb-2">✅</span>
+                            <h3 class="font-semibold text-xl mb-1">Feasibility</h3>
+                            <p class="text-gray-600 text-sm">Get a quick check on the feasibility of your project.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Registration Page Section -->
+        <div id="registration-page" class="page-section px-8">
+            <div class="glass-card p-6 md:p-10 mx-auto max-w-5xl">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800 text-center">Community Registration</h2>
+                <p class="text-gray-600 text-center mb-8">Please provide your details to register for the assessment service.</p>
+                
+                <form id="registrationForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                        <div>
+                            <label for="regMobile" class="block text-gray-700 font-medium mb-2">Mobile</label>
+                            <input type="tel" id="regMobile" name="regMobile" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" placeholder="e.g., 9876543210" required>
+                        </div>
+                        <div>
+                            <label for="regName" class="block text-gray-700 font-medium mb-2">Name</label>
+                            <input type="text" id="regName" name="regName" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" placeholder="e.g., Ramesh" required>
+                        </div>
+                        <div>
+                            <label for="regEmail" class="block text-gray-700 font-medium mb-2">Email</label>
+                            <input type="email" id="regEmail" name="regEmail" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" placeholder="e.g., ramesh@example.com">
+                        </div>
+                        <div>
+                            <label for="regState" class="block text-gray-700 font-medium mb-2">State</label>
+                            <select id="regState" name="regState" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" required>
+                                <option value="">Select</option>
+                                <option value="A AND N ISLANDS">A AND N ISLANDS</option>
+                                <option value="All India Combine Manuf Asso">All India Combine Manuf Asso</option>
+                                <option value="All India Machinary Manuf Asso">All India Machinary Manuf Asso</option>
+                                <option value="All India Pwr Tiler Manuf Asso">All India Pwr Tiler Manuf Asso</option>
+                                <option value="ANDHRA PRADESH">ANDHRA PRADESH</option>
+                                <option value="ARUNACHAL PRADESH">ARUNACHAL PRADESH</option>
+                                <option value="ASSAM">ASSAM</option>
+                                <option value="BIHAR">BIHAR</option>
+                                <option value="CENTRAL">CENTRAL</option>
+                                <option value="CHANDIGARH">CHANDIGARH</option>
+                                <option value="CHHATTISGARH">CHHATTISGARH</option>
+                                <option value="DAC">DAC</option>
+                                <option value="DADRA AND NAGAR HAVELI">DADRA AND NAGAR HAVELI</option>
+                                <option value="DAMAN AND DIU">DAMAN AND DIU</option>
+                                <option value="DELHI">DELHI</option>
+                                <option value="GOA">GOA</option>
+                                <option value="GUJARAT">GUJARAT</option>
+                                <option value="HARYANA">HARYANA</option>
+                                <option value="HIMACHAL PRADESH">HIMACHAL PRADESH</option>
+                                <option value="JAMMU AND KASHMIR">JAMMU AND KASHMIR</option>
+                                <option value="JHARKAND">JHARKAND</option>
+                                <option value="KARNATAKA">KARNATAKA</option>
+                                <option value="KERALA">KERALA</option>
+                                <option value="KRIBHCO">KRIBHCO</option>
+                                <option value="LADAKH">LADAKH</option>
+                                <option value="LAKSHADWEEP">LAKSHADWEEP</option>
+                                <option value="MADHYA PRADESH">MADHYA PRADESH</option>
+                                <option value="MAHARASHTRA">MAHARASHTRA</option>
+                                <option value="MANIPUR">MANIPUR</option>
+                                <option value="MANUFACTURER ASSOCIATION">MANUFACTURER ASSOCIATION</option>
+                                <option value="MEGHALAYA">MEGHALAYA</option>
+                                <option value="MIZORAM">MIZORAM</option>
+                                <option value="NAGALAND">NAGALAND</option>
+                                <option value="NSC">NSC</option>
+                                <option value="ODISHA">ODISHA</option>
+                                <option value="PUDUCHERRY">PUDUCHERRY</option>
+                                <option value="PUNJAB">PUNJAB</option>
+                                <option value="RAJASTHAN">RAJASTHAN</option>
+                                <option value="SFCI">SFCI</option>
+                                <option value="SIKKIM">SIKKIM</option>
+                                <option value="TAMIL NADU">TAMIL NADU</option>
+                                <option value="TELANGANA">TELANGANA</option>
+                                <option value="testState">testState</option>
+                                <option value="Tractor Manufacturer Asso">Tractor Manufacturer Asso</option>
+                                <option value="TRIPURA">TRIPURA</option>
+                                <option value="UTTAR PRADESH">UTTAR PRADESH</option>
+                                <option value="UTTARAKHAND">UTTARAKHAND</option>
+                                <option value="WEST BENGAL">WEST BENGAL</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regDistrict" class="block text-gray-700 font-medium mb-2">District</label>
+                            <select id="regDistrict" name="regDistrict" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" required>
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regSubdistrict" class="block text-gray-700 font-medium mb-2">Subdistrict</label>
+                            <select id="regSubdistrict" name="regSubdistrict" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regBlock" class="block text-gray-700 font-medium mb-2">Block</label>
+                            <select id="regBlock" name="regBlock" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regVillage" class="block text-gray-700 font-medium mb-2">Village/Town</label>
+                            <select id="regVillage" name="regVillage" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regAge" class="block text-gray-700 font-medium mb-2">Age</label>
+                            <input type="number" id="regAge" name="regAge" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" placeholder="e.g., 35">
+                        </div>
+                        <div>
+                            <label for="regGender" class="block text-gray-700 font-medium mb-2">Gender</label>
+                            <select id="regGender" name="regGender" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Transgender">Transgender</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regQualification" class="block text-gray-700 font-medium mb-2">Qualification</label>
+                            <select id="regQualification" name="regQualification" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                                <option value="Illiterate">Illiterate</option>
+                                <option value="Semi-literate">Semi-literate</option>
+                                <option value="Primary">Primary</option>
+                                <option value="Middle">Middle</option>
+                                <option value="10th/12th">10th/12th</option>
+                                <option value="Graduate">Graduate</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regLandHolding" class="block text-gray-700 font-medium mb-2">Land Holding</label>
+                            <select id="regLandHolding" name="regLandHolding" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                                <option value="<1 Hectare"><1 Hectare</option>
+                                <option value="1-2 Hectare">1-2 Hectare</option>
+                                <option value=">2 Hectare">>2 Hectare</option>
+                                <option value="Landless">Landless</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Language Preferred</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="language" value="English" class="form-checkbox text-blue-600 rounded-full">
+                                    <span class="ml-2 text-gray-700">English</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="language" value="Hindi" class="form-checkbox text-blue-600 rounded-full">
+                                    <span class="ml-2 text-gray-700">Hindi</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Mode Of SMS</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="smsMode" value="Text" class="form-radio text-blue-600">
+                                    <span class="ml-2 text-gray-700">Text</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="smsMode" value="Voice" class="form-radio text-blue-600">
+                                    <span class="ml-2 text-gray-700">Voice</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="regSector" class="block text-gray-700 font-medium mb-2">Sector</label>
+                            <select id="regSector" name="regSector" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                                <option value="Agriculture">AGRICULTURE</option>
+                                <option value="Horticulture">HORTICULTURE</option>
+                                <option value="Fisheries">FISHERIES</option>
+                                <option value="Animal Husbandry">ANIMAL HUSBANDRY</option>
+                                <option value="Sericulture">SERICULTURE</option>
+                                <option value="Dairying">DAIRYING</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regCategory" class="block text-gray-700 font-medium mb-2">Category</label>
+                            <select id="regCategory" name="regCategory" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="regCrop" class="block text-gray-700 font-medium mb-2">Crop</label>
+                            <select id="regCrop" name="regCrop" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105 mt-6">
+                        Submit Registration
+                    </button>
+                </form>
+            </div>
+            <div id="registrationMessage" class="mt-4 hidden p-4 text-center rounded-lg max-w-2xl mx-auto"></div>
+        </div>
+
+        <!-- About Page Section -->
+        <div id="about-page" class="page-section px-8">
+            <div class="glass-card p-10 mx-auto max-w-5xl text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">About Water Saathi</h2>
+                <p class="text-lg text-gray-600">
+                    Water Saathi is an initiative to promote public participation in groundwater conservation. Our platform empowers individuals and communities to easily estimate the feasibility and potential of rooftop rainwater harvesting at their locations. We provide personalized information and guidance to help build a sustainable water future.
+                </p>
+            </div>
+        </div>
+
+        <!-- Accolades Page Section -->
+        <div id="accolades-page" class="page-section px-8">
+            <div class="glass-card p-10 mx-auto max-w-5xl text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Accolades</h2>
+                <p class="text-lg text-gray-600">
+                    This project has been recognized for its innovative approach to water conservation. We are proud to be participating in SIH 2025 and contributing to a more sustainable future.
+                </p>
+            </div>
+        </div>
+
+        <!-- Contact Us Page Section -->
+        <div id="contact-page" class="page-section px-8">
+            <div class="glass-card p-10 mx-auto max-w-5xl text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Contact Us</h2>
+                <p class="text-lg text-gray-600">
+                    For any queries, please reach out to us at contact@watersaathi.com.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Moving Banner Section -->
+    <div class="bg-cyan-100 py-3">
+        <div class="scrolling-text-container">
+            <p class="text-center font-medium scrolling-text">Empower your community with Water Saathi!</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-blue-900 text-white py-4" onclick="createRipple(event)">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <div class="flex flex-wrap justify-center space-x-4 md:space-x-8 py-2">
+                <a href="#" class="hover:text-gray-300">Privacy Policy</a>
+                <a href="#" class="hover:text-gray-300">Terms of Use</a>
+                <a href="#" class="hover:text-gray-300">Sitemap</a>
+                <a href="#" class="hover:text-gray-300">Contact Us</a>
+            </div>
+            <div class="py-2">
+                &copy; 2025 Water Saathi. All Rights Reserved.
+            </div>
+            <div class="py-2">
+                Designed & Developed for SIH 2025
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for page navigation, form submission, and animations -->
+    <script>
+        const showPage = (pageId) => {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'block';
+        };
+
+        const createRipple = (event) => {
+            const footer = document.querySelector('footer');
+            const rippleDiv = document.createElement('span');
+            rippleDiv.classList.add('ripple');
+            
+            const rect = footer.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height) * 1.5;
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            rippleDiv.style.width = rippleDiv.style.height = `${size}px`;
+            rippleDiv.style.top = `${y}px`;
+            rippleDiv.style.left = `${x}px`;
+            
+            footer.appendChild(rippleDiv);
+            
+            rippleDiv.addEventListener('animationend', () => {
+                rippleDiv.remove();
+            });
+        };
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('registrationForm').addEventListener('submit', function(event) {
+                event.preventDefault(); 
+                
+                const mobile = document.getElementById('regMobile').value;
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const state = document.getElementById('regState').value;
+                const district = document.getElementById('regDistrict').value;
+                const subdistrict = document.getElementById('regSubdistrict').value;
+                const block = document.getElementById('regBlock').value;
+                const village = document.getElementById('regVillage').value;
+                const age = document.getElementById('regAge').value;
+                const gender = document.getElementById('regGender').value;
+                const qualification = document.getElementById('regQualification').value;
+                const landHolding = document.getElementById('regLandHolding').value;
+                const language = Array.from(document.querySelectorAll('input[name="language"]:checked')).map(cb => cb.value);
+                const smsMode = document.querySelector('input[name="smsMode"]:checked')?.value || 'N/A';
+                const sector = document.getElementById('regSector').value;
+                const category = document.getElementById('regCategory').value;
+                const crop = document.getElementById('regCrop').value;
+
+                console.log('Community Registration Details:', {
+                    mobile, name, email, state, district, subdistrict, block, village, age, gender, qualification, landHolding, language, smsMode, sector, category, crop
+                });
+
+                const messageDiv = document.getElementById('registrationMessage');
+                messageDiv.textContent = 'Thank you for registering! Your details have been submitted.';
+                messageDiv.classList.remove('hidden');
+                messageDiv.classList.add('bg-blue-100', 'text-blue-700');
+                
+                this.reset();
+            });
+
+            // Slideshow functionality
+            const images = [
+                // Replace these with your image file paths
+                "https://d2pn8kiwq2w21t.cloudfront.net/original_images/1-groundwater-FINAL-16_4bMoblc.jpg",
+                "https://placehold.co/900x400/a3b1c6/2a3543?text=Water+Harvesting+2",
+                "https://placehold.co/900x400/c2d4e8/425a72?text=Recharge+Pit+3"
+            ];
+            let currentIndex = 0;
+            const slideshowContainer = document.querySelector('.slideshow-container');
+
+            images.forEach((src, index) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = `Slideshow image ${index + 1}`;
+                img.classList.add('slideshow-image');
+                slideshowContainer.appendChild(img);
+            });
+
+            const slideshowImages = document.querySelectorAll('.slideshow-image');
+
+            function nextImage() {
+                slideshowImages.forEach(img => img.classList.remove('active'));
+                currentIndex = (currentIndex + 1) % slideshowImages.length;
+                slideshowImages[currentIndex].classList.add('active');
+            }
+
+            if (slideshowImages.length > 0) {
+                slideshowImages[currentIndex].classList.add('active');
+            }
+
+            setInterval(nextImage, 4000);
+
+            // Rain Animation
+            const canvas = document.getElementById('animation-canvas');
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                createRain();
+            };
+            window.addEventListener('resize', resizeCanvas);
+
+            let rainDrops = [];
+            function RainDrop() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.speed = (Math.random() * 5) + 2;
+                this.length = (Math.random() * 15) + 5;
+                this.width = (Math.random() * 1) + 0.5;
+            }
+            function createRain() {
+                rainDrops = [];
+                for(let i = 0; i < 200; i++) {
+                    rainDrops.push(new RainDrop());
+                }
+            }
+            function drawRain() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineCap = 'round';
+                rainDrops.forEach(drop => {
+                    ctx.beginPath();
+                    ctx.moveTo(drop.x, drop.y);
+                    ctx.lineTo(drop.x, drop.y + drop.length);
+                    ctx.lineWidth = drop.width;
+                    ctx.stroke(); 
+                    drop.y += drop.speed;
+                    if(drop.y > canvas.height) {
+                        drop.y = Math.random() * -50;
+                        drop.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+            const animateRain = () => {
+                drawRain();
+                animationFrameId = requestAnimationFrame(animateRain);
+            };
+
+            // Initial setup
+            resizeCanvas();
+            animateRain();
+            showPage('home-page');
+
+            // Ripple Effect on Footer
+            document.querySelector('footer').addEventListener('click', createRipple);
+        });
+    </script>
+</body>
+</html>
