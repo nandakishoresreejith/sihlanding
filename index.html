@@ -37,7 +37,7 @@
             display: none;
             padding: 2rem 0;
             position: relative;
-            z-index: 2; /* Ensure content is on top of animations */
+            z-index: 2;
         }
         #animation-canvas {
             position: fixed;
@@ -115,6 +115,50 @@
             position: relative;
             z-index: 2;
         }
+        .features-bg {
+            background-image: url("https://d2pn8kiwq2w21t.cloudfront.net/original_images/Gemini_Generated_Image_k952c8k952c8k952.png");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .features-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+        .features-bg .grid {
+            position: relative;
+            z-index: 1;
+        }
+        .ripple-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .ripple-bg span {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            animation: ripple-out 2s forwards;
+            pointer-events: none;
+        }
+        @keyframes ripple-out {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -164,7 +208,7 @@
 
     <!-- Main Header -->
     <header class="bg-white py-4 shadow-sm">
-        <div class="container mx-auto px-4 flex justify-start items-center">
+        <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <div class="border-r border-gray-300 pr-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -207,9 +251,10 @@
         <div id="home-page" class="page-section" style="display: block;">
             
             <!-- Slideshow Container -->
-            <div class="slideshow-container">
+            <div class="slideshow-container mx-auto max-w-7xl">
             </div>
-             <!-- Features Section -->
+
+            <!-- Features Section -->
             <div class="features-bg mt-12 px-8">
                 <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Key Features of Water Saathi</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
